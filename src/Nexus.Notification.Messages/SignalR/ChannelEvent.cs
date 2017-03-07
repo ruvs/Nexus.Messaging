@@ -1,12 +1,11 @@
-﻿using NServiceBus;
-using System;
+﻿using System;
 
 namespace Nexus.Notification.Messages.SignalR
 {
     /// <summary>
     /// A generic object to represent a broadcasted event in our SignalR hubs
     /// </summary>
-    public class ChannelEvent : ICommand
+    public class ChannelEvent
     {
         public ChannelEvent()
         {
