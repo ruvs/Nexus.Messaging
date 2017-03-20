@@ -1,5 +1,6 @@
 ﻿using MassTransit;
 using MassTransit.RabbitMqTransport;
+using Nexus.Notification.Tests.RabbitMq.Console.ParticipantLibrary;
 using System;
 using System.Configuration;
 
@@ -7,21 +8,23 @@ namespace Nexus.Notification.Tests.RabbitMq.Console
 {
     public static class BusConfigurator
     {
-        public static IBusControl ConfigureBus(Action<IRabbitMqBusFactoryConfigurator, IRabbitMqHost> registration = null)
+        public static IBusControl ConfigureBus(string hostUri, string username, Action<IRabbitMqBusFactoryConfigurator, IRabbitMqHost> registration = null)
         {
-            string _rabbitMqHostUri = GetAppSetting("RabbitMqHost");
-            string _rabbitMqUser = GetAppSetting("RabbitMqUser");
             string _rabbitMqSignalRServiceQueue = GetAppSetting("SignalRNotificationServiceQueue");
 
             return Bus.Factory.CreateUsingRabbitMq(cfg =>
             {
-                var host = cfg.Host(new Uri(_rabbitMqHostUri), hst =>
+                var host = cfg.Host(new Uri(hostUri), hst =>
                 {
-                    hst.Username(_rabbitMqUser);
-                    hst.Password(_rabbitMqUser);
+                    hst.Username(username);
+                    hst.Password(username);
                 });
 
-                cfg.ReceiveEndpoint(host, _rabbitMqSignalRServiceQueue, c => c.Consumer<ChannelEventConsumer>());
+                cfg.ReceiveEndpoint(host, _rabbitMqSignalRServiceQueue, c =>
+                {
+                    c.Consumer<ParticipantLibraryItemCreatedConsumer>();
+                    c.Consumer<ParticipantLibraryItemUpdatedConsumer>();
+                });
 
                 registration?.Invoke(cfg, host);
             });
